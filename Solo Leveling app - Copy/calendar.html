@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solo Leveling – Calendar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', Arial, sans-serif; background: #121212; color: #e0e0e0; }
+    .container {
+      max-width: 600px; margin: 20px auto; padding: 20px;
+      background: #1e1e1e; border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    .top-bar {
+      position: relative; text-align: center; margin-bottom: 20px;
+    }
+    .top-bar h1 {
+      font-size: 28px; color: #fff;
+    }
+    .back-btn {
+      position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #fff; font-size: 24px;
+      cursor: pointer;
+    }
+    .section-header {
+      font-size: 20px; color: #ffc107;
+      margin: 20px 0 10px; border-bottom: 1px solid #555;
+      padding-bottom: 4px;
+    }
+    ul { list-style: none; }
+    ul li {
+      padding: 8px 12px; margin-bottom: 8px;
+      background: #222; border-radius: 6px;
+      cursor: pointer; display: flex; justify-content: space-between;
+    }
+    ul li.has-record { border-left: 4px solid #66ff66; }
+    #toggleHistoryBtn {
+      background: #ffc107; color: #121212;
+      border: none; padding: 8px 16px; border-radius: 10px;
+      font-weight: bold; cursor: pointer; margin: 10px 0 20px;
+    }
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); display: none;
+      justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal {
+      background: #1e1e1e; padding: 20px; border-radius: 12px;
+      width: 90%; max-width: 320px; text-align: left;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    .modal h2 {
+      margin-bottom: 12px; font-size: 18px; color: #fff;
+    }
+    .modal p { margin-bottom: 8px; font-size: 14px; color: #e0e0e0; }
+    .modal button {
+      margin-top: 12px; background: #66ff66; color: #121212;
+      border: none; padding: 8px 16px; border-radius: 8px;
+      font-weight: bold; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Calendar</h1>
+    </div>
+
+    <div id="last30Section">
+      <div class="section-header">Last 30 Days</div>
+      <ul id="calendarList"></ul>
+    </div>
+
+    <button id="toggleHistoryBtn">Show Full History</button>
+
+    <div id="fullHistorySection" style="display:none;">
+      <div class="section-header">Full History</div>
+      <ul id="fullHistoryList"></ul>
+    </div>
+  </div>
+
+  <!-- Record Modal -->
+  <div class="modal-overlay" id="recordModal">
+    <div class="modal">
+      <h2 id="recordDate">DATE</h2>
+      <p><strong>Level:</strong> <span id="recordLevel">0</span></p>
+      <p><strong>Rewards:</strong> ₹<span id="recordRewards">0</span></p>
+      <p><strong>XP:</strong> <span id="recordXP">0</span></p>
+      <p><strong>Streak Updated:</strong> <span id="recordStreak">No</span></p>
+      <p><strong>Penalty:</strong> <span id="recordPenalty">No</span></p>
+      <button onclick="closeRecordModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Load all stored records
+    const calendarRecords = JSON.parse(localStorage.getItem('calendarRecords') || '{}');
+
+    const calendarList      = document.getElementById('calendarList');
+    const fullHistoryList   = document.getElementById('fullHistoryList');
+    const toggleHistoryBtn  = document.getElementById('toggleHistoryBtn');
+    const last30Section     = document.getElementById('last30Section');
+    const fullHistorySection= document.getElementById('fullHistorySection');
+
+    // Modal elements
+    const recordModal    = document.getElementById('recordModal');
+    const recordDate     = document.getElementById('recordDate');
+    const recordLevel    = document.getElementById('recordLevel');
+    const recordRewards  = document.getElementById('recordRewards');
+    const recordXP       = document.getElementById('recordXP');
+    const recordStreak   = document.getElementById('recordStreak');
+    const recordPenalty  = document.getElementById('recordPenalty');
+
+    // Build last 30 days array
+    const today = new Date();
+    const last30Days = [];
+    for (let i = 0; i < 30; i++) {
+      let d = new Date();
+      d.setDate(today.getDate() - i);
+      const isoKey = d.toISOString().split('T')[0];       // YYYY-MM-DD
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      last30Days.push({ key: isoKey, display: `${dd}-${mm}` });
+    }
+
+    // Render the “Last 30 Days” list
+    function renderLast30() {
+      calendarList.innerHTML = '';
+      last30Days.forEach(({key, display}) => {
+        const li = document.createElement('li');
+        li.textContent = display;
+        if (calendarRecords[key]) li.classList.add('has-record');
+        li.onclick = () => showRecord(key, display);
+        calendarList.appendChild(li);
+      });
+    }
+
+    // Render the “Full History” list (all stored dates)
+    function renderFullHistory() {
+      fullHistoryList.innerHTML = '';
+      // get all keys, sort descending by date
+      Object.keys(calendarRecords)
+        .sort((a,b) => new Date(b) - new Date(a))
+        .forEach(key => {
+          const d = new Date(key);
+          const dd = String(d.getDate()).padStart(2,'0');
+          const mm = String(d.getMonth()+1).padStart(2,'0');
+          const li = document.createElement('li');
+          li.textContent = `${dd}-${mm}`;
+          li.classList.add('has-record');
+          li.onclick = () => showRecord(key, `${dd}-${mm}`);
+          fullHistoryList.appendChild(li);
+        });
+    }
+
+    // Toggle between views
+    toggleHistoryBtn.onclick = () => {
+      const showingFull = fullHistorySection.style.display === 'block';
+      if (showingFull) {
+        fullHistorySection.style.display = 'none';
+        last30Section.style.display = 'block';
+        toggleHistoryBtn.textContent = 'Show Full History';
+      } else {
+        renderFullHistory();
+        fullHistorySection.style.display = 'block';
+        last30Section.style.display = 'none';
+        toggleHistoryBtn.textContent = 'Show Last 30 Days';
+      }
+    };
+
+    // Show record modal for a given date key
+    function showRecord(key, display) {
+      const rec = calendarRecords[key] || {
+        level: 0, rewards: 0, xp: 0, streakUpdated: false, penalty: false
+      };
+      recordDate.textContent    = display;
+      recordLevel.textContent   = rec.level;
+      recordRewards.textContent = rec.rewards;
+      recordXP.textContent      = rec.xp;
+      recordStreak.textContent  = rec.streakUpdated ? 'Yes' : 'No';
+      recordPenalty.textContent = rec.penalty ? 'Yes' : 'No';
+      recordModal.classList.add('visible');
+    }
+
+    function closeRecordModal() {
+      recordModal.classList.remove('visible');
+    }
+
+    // Initial render
+    renderLast30();
+  </script>
+</body>
+</html>

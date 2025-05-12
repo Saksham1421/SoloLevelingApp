@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Stopwatch App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+        }
+        
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #121212;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header {
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 16px;
+            position: relative;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .back-button {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .stopwatch-container {
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 56px);
+        }
+        
+        .stopwatch-display {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 48px;
+            text-align: center;
+            color: #fff;
+        }
+        
+        .milliseconds {
+            font-size: 40px;
+            color: #fff;
+        }
+        
+        .stopwatch-controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            height: 60px;
+        }
+        
+        .stopwatch-button {
+            border-radius: 50%;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stopwatch-button:active {
+            transform: scale(0.97);
+        }
+        
+        .start-button {
+            background-color: #eca400;
+            color: #121212;
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+        
+        .split-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .pause-button {
+            background-color: #fff;
+            color: #121212;
+            right: 30%;
+        }
+        
+        .restart-button {
+            background-color: #F44336;
+            color: #fff;
+            left: 30%;
+        }
+        
+        .finish-button {
+            background-color: #eca400;
+            color: #000000;
+            padding: 12px 32px;
+            border-radius: 24px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .finish-button.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: #1a1a1a;
+            padding: 24px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.visible .modal {
+            transform: scale(1);
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .modal-button {
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .confirm-button {
+            background-color: #eca400;
+            color: #121212;
+        }
+        
+        .cancel-button {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <button class="back-button" id="backButton">←</button>
+            <h1>Stopwatch</h1>
+        </div>
+        
+        <div class="stopwatch-container">
+            <div class="stopwatch-display" id="stopwatchDisplay">
+                00:00:00<span class="milliseconds">.00</span>
+            </div>
+            
+            <div class="stopwatch-controls">
+                <button class="stopwatch-button start-button" id="startButton">▶</button>
+                <button class="stopwatch-button split-button restart-button" id="restartButton">↺</button>
+                <button class="stopwatch-button split-button pause-button" id="pauseButton">❙❙</button>
+            </div>
+            
+            <button class="finish-button" id="finishButton">Finish</button>
+        </div>
+    </div>
+    
+    <!-- Finish Modal -->
+    <div class="modal-overlay" id="finishModalOverlay">
+        <div class="modal">
+            <div class="modal-title">
+                Finishing will Update the Daily Quest and Title progress
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm-button" id="finishConfirmButton">OK</button>
+                <button class="modal-button cancel-button" id="finishCancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back Modal -->
+    <div class="modal-overlay" id="backModalOverlay">
+        <div class="modal">
+            <div class="modal-title">
+                Going back now will not save the progress
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm-button" id="backConfirmButton">Continue</button>
+                <button class="modal-button cancel-button" id="backCancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const stopwatchDisplay    = document.getElementById('stopwatchDisplay');
+            const startButton         = document.getElementById('startButton');
+            const pauseButton         = document.getElementById('pauseButton');
+            const restartButton       = document.getElementById('restartButton');
+            const finishButton        = document.getElementById('finishButton');
+            const backButton          = document.getElementById('backButton');
+            
+            // Modal elements
+            const finishModalOverlay  = document.getElementById('finishModalOverlay');
+            const finishConfirmButton = document.getElementById('finishConfirmButton');
+            const finishCancelButton  = document.getElementById('finishCancelButton');
+            
+            const backModalOverlay     = document.getElementById('backModalOverlay');
+            const backConfirmButton    = document.getElementById('backConfirmButton');
+            const backCancelButton     = document.getElementById('backCancelButton');
+            
+            // Stopwatch variables
+            let startTime;
+            let elapsedTime     = 0;
+            let stopwatchInterval;
+            let isRunning       = false;
+            let isPaused        = false;
+            
+            // Format time to HH:MM:SS.ms
+            function formatTime(ms) {
+                const totalSeconds = Math.floor(ms / 1000);
+                const centis       = Math.floor((ms % 1000) / 10);
+                const hours        = Math.floor(totalSeconds / 3600);
+                const minutes      = Math.floor((totalSeconds % 3600) / 60);
+                const seconds      = totalSeconds % 60;
+                return `${hours.toString().padStart(2,'0')}:` +
+                       `${minutes.toString().padStart(2,'0')}:` +
+                       `${seconds.toString().padStart(2,'0')}` +
+                       `<span class="milliseconds">.${centis.toString().padStart(2,'0')}</span>`;
+            }
+            
+            // Update the display
+            function updateDisplay() {
+                const current = isRunning
+                    ? (Date.now() - startTime + elapsedTime)
+                    : elapsedTime;
+                stopwatchDisplay.innerHTML = formatTime(current);
+            }
+            
+            // Show split & finish
+            function showSplitButtons() {
+                startButton.style.transform = "translateX(-50%) scale(0)";
+                startButton.style.opacity   = "0";
+                setTimeout(() => {
+                    startButton.style.display = "none";
+                    pauseButton.style.transform   = "scale(1)";
+                    pauseButton.style.opacity     = "1";
+                    restartButton.style.transform = "scale(1)";
+                    restartButton.style.opacity   = "1";
+                    finishButton.classList.add('visible');
+                }, 300);
+            }
+            
+            // Hide split & finish
+            function hideSplitButtons() {
+                pauseButton.style.transform   = "scale(0)";
+                pauseButton.style.opacity     = "0";
+                restartButton.style.transform = "scale(0)";
+                restartButton.style.opacity   = "0";
+                finishButton.classList.remove('visible');
+                setTimeout(() => {
+                    startButton.style.display   = "flex";
+                    startButton.style.opacity   = "1";
+                    startButton.style.transform = "translateX(-50%) scale(1)";
+                }, 300);
+            }
+            
+            // Start
+            function startStopwatch() {
+                if (!isRunning) {
+                    startTime   = Date.now();
+                    isRunning   = true;
+                    showSplitButtons();
+                    stopwatchInterval = setInterval(updateDisplay, 10);
+                }
+            }
+            
+            // Pause / Resume
+            function pauseStopwatch() {
+                if (isRunning) {
+                    clearInterval(stopwatchInterval);
+                    elapsedTime += Date.now() - startTime;
+                    isRunning = false;
+                    isPaused  = true;
+                    pauseButton.innerHTML = '▶';
+                }
+                else if (isPaused) {
+                    startTime = Date.now();
+                    isRunning = true;
+                    isPaused  = false;
+                    pauseButton.innerHTML = '❙❙';
+                    stopwatchInterval = setInterval(updateDisplay, 10);
+                }
+            }
+            
+            // Reset
+            function resetStopwatch() {
+                clearInterval(stopwatchInterval);
+                isRunning   = false;
+                isPaused    = false;
+                elapsedTime = 0;
+                hideSplitButtons();
+                pauseButton.innerHTML = '❙❙';
+                updateDisplay();
+            }
+            
+            // Finish
+            function handleFinish() {
+                if (isRunning) pauseStopwatch();
+                finishModalOverlay.classList.add('visible');
+            }
+            function confirmFinish() {
+                console.log("Progress updated");
+                finishModalOverlay.classList.remove('visible');
+                resetStopwatch();
+                window.history.back();
+            }
+            function cancelFinish() {
+                finishModalOverlay.classList.remove('visible');
+            }
+            
+            // Back
+            function handleBack() {
+                if (isRunning || isPaused) {
+                    backModalOverlay.classList.add('visible');
+                } else {
+                    window.history.back();
+                }
+            }
+            function confirmBack() {
+                backModalOverlay.classList.remove('visible');
+                resetStopwatch();
+                window.history.back();
+            }
+            function cancelBack() {
+                backModalOverlay.classList.remove('visible');
+            }
+            
+            // Initialize display
+            updateDisplay();
+            
+            // Listeners
+            startButton.addEventListener('click', startStopwatch);
+            pauseButton.addEventListener('click', pauseStopwatch);
+            restartButton.addEventListener('click', resetStopwatch);
+            finishButton.addEventListener('click', handleFinish);
+            backButton.addEventListener('click', handleBack);
+            
+            finishConfirmButton.addEventListener('click', confirmFinish);
+            finishCancelButton.addEventListener('click', cancelFinish);
+            
+            backConfirmButton.addEventListener('click', confirmBack);
+            backCancelButton.addEventListener('click', cancelBack);
+        });
+    </script>
+</body>
+</html>

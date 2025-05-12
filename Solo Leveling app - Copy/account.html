@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solo Leveling - Account</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" integrity="sha512-rl6/lirD4S6rj96q3Z4a6zMlzL0/yN/0JdxuU+ArCz7QPhFwhfJAXRiJyx+zq+uUduFmm4N+6m+al0KZ6f9a2g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    #currentIcon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid #66ff66;
+  object-fit: cover; /* Ensures circle shape without stretching */
+}
+    /* --- Base & Global --- */
+    body { font-family: 'Poppins', Arial, sans-serif; margin:0; padding:0; background-color:#121212; color:#e0e0e0; }
+    .container { max-width:600px; margin:20px auto; padding:20px; background:#1e1e1e; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.8); }
+    /* --- Top Bar --- */
+    .top-bar { position:relative; text-align:center; margin-bottom:20px; }
+    .top-bar h1 { margin:0; font-size:28px; color:#fff; }
+    .back-btn { position:absolute; left:0; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:24px; cursor:pointer; padding:8px; }
+    .back-btn:active { opacity:0.7; }
+    /* --- Player Icon Section --- */
+    .icon-group { text-align:center; margin-bottom:20px; }
+    #currentIcon { width:70px; height:70px; border-radius:50%; border:2px solid #66ff66; }
+    .icon-group button { display:block; margin:10px auto; background:#66ff66; color:#121212; border:none; padding:8px 16px; border-radius:10px; font-weight:bold; cursor:pointer; transition:background 0.2s; }
+    .icon-group button:hover { background:#55dd55; }
+    /* --- Other Form Sections --- */
+    .form-group { margin-bottom:20px; padding:15px; border:2px solid #eca400; border-radius:10px; }
+    .form-group label { display:block; font-weight:bold; margin-bottom:8px; color:#fff; }
+    .form-group input[type="text"] { width:100%; padding:10px; border-radius:5px; border:1px solid #555; background:#222; color:#e0e0e0; font-size:16px; box-sizing:border-box; }
+    .form-group button { margin-top:10px; background:#66ff66; color:#121212; border:none; padding:8px 16px; border-radius:10px; font-weight:bold; cursor:pointer; transition:background 0.2s; }
+    .form-group button:hover { background:#55dd55; }
+    /* --- Logout --- */
+    .logout-container { text-align:center; margin-top:30px; }
+    .logout-container button { background:#ff5722; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:16px; cursor:pointer; transition:opacity 0.2s; }
+    .logout-container button:hover { opacity:0.9; }
+    /* --- Modal for Name Change & Icon Cropper --- */
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; justify-content:center; align-items:center; z-index:1000; }
+    .modal-content { background:#1e1e1e; padding:20px; border-radius:15px; border:2px solid #66ff66; text-align:center; color:#e0e0e0; max-width:300px; width:90%; box-shadow:0 0 15px rgba(0,0,0,0.8); }
+    .modal-content p { margin-bottom:20px; }
+    .modal-content button { margin:0 8px; padding:8px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:bold; }
+    .modal-content .confirm { background:#66ff66; color:#121212; }
+    .modal-content .confirm:hover { background:#55dd55; }
+    .modal-content .cancel { background:#ff5722; color:#fff; }
+    .modal-content .cancel:hover { opacity:0.9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Account</h1>
+    </div>
+
+    <!-- Change Player Icon -->
+    <div class="icon-group">
+      <img id="currentIcon" src="player icon 1.png" alt="Player Icon" />
+      <button id="changeIconBtn">Change Icon</button>
+      <input type="file" id="iconInput" accept="image/*" style="display:none" />
+    </div>
+
+    <!-- Change Player Name -->
+    <div class="form-group">
+      <label for="newName">Change Player Name</label>
+      <input type="text" id="newName" placeholder="Enter new name…" />
+      <button id="openChangeModal">Confirm</button>
+    </div>
+
+    <!-- Logout -->
+    <div class="logout-container">
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <!-- Modal for Name Change -->
+  <div id="changeModal" class="modal">
+    <div class="modal-content">
+      <p>Are you sure you want to change your player name?</p>
+      <button class="confirm" id="doChange">Yes</button>
+      <button class="cancel" id="cancelChange">No</button>
+    </div>
+  </div>
+
+  <!-- Modal for Icon Cropping -->
+  <div id="iconModal" class="modal">
+    <div class="modal-content">
+      <p>Adjust Your Icon</p>
+      <img id="cropImage" style="max-width:100%; border-radius:10px;" />
+      <div style="margin-top:15px;">
+        <button class="confirm" id="iconConfirm">Confirm</button>
+        <button class="cancel" id="iconCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cropper.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" integrity="sha512-G0oNnUzwukCIp4RE+1mKpXg7W6rzRKcF+qZLHfb47Gbq2l/NBnOKVGwYafDtq7Nx5l0YMik3RdxlgDbWvUu6yw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    // ICON CHANGE LOGIC
+    let cropper;
+    const changeIconBtn = document.getElementById('changeIconBtn');
+    const iconInput     = document.getElementById('iconInput');
+    const iconModal     = document.getElementById('iconModal');
+    const cropImage     = document.getElementById('cropImage');
+    const currentIcon   = document.getElementById('currentIcon');
+
+    // Load from localStorage
+    const savedIcon = localStorage.getItem('playerIcon');
+    if (savedIcon) currentIcon.src = savedIcon;
+
+    changeIconBtn.onclick = () => iconInput.click();
+
+    iconInput.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      cropImage.src = url;
+      iconModal.style.display = 'flex';
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        movable: true,
+        zoomable: true,
+      });
+    };
+
+    document.getElementById('iconCancel').onclick = () => {
+      iconModal.style.display = 'none';
+      cropper.destroy();
+    };
+
+    document.getElementById('iconConfirm').onclick = () => {
+      const canvas = cropper.getCroppedCanvas({ width: 70, height: 70 });
+      const dataUrl = canvas.toDataURL('image/png');
+      currentIcon.src = dataUrl;
+      localStorage.setItem('playerIcon', dataUrl);
+      // update menu icon (in sidebar)
+      const menuIcon = window.opener?.document.querySelector('.player-icon')
+                     || document.querySelector('.player-icon');
+      if (menuIcon) menuIcon.src = dataUrl;
+      iconModal.style.display = 'none';
+      cropper.destroy();
+    };
+
+    // NAME CHANGE LOGIC (unchanged)
+    document.getElementById('openChangeModal').onclick = () => {
+      if (!document.getElementById('newName').value.trim()) {
+        alert('Please enter a name first.');
+        return;
+      }
+      document.getElementById('changeModal').style.display = 'flex';
+    };
+    document.getElementById('cancelChange').onclick = () => {
+      document.getElementById('changeModal').style.display = 'none';
+    };
+    document.getElementById('doChange').onclick = () => {
+      const newName = document.getElementById('newName').value.trim();
+      const nameElem = window.opener?.document.getElementById('player-name')
+                     || document.getElementById('player-name');
+      if (nameElem) nameElem.textContent = newName;
+      document.getElementById('changeModal').style.display = 'none';
+      alert('Player name changed to: ' + newName);
+    };
+
+    // LOGOUT (unchanged except redirect)
+    document.getElementById('logoutBtn').onclick = () => {
+      alert('Logging out…');
+      localStorage.removeItem('loggedIn');
+      window.location.href = 'login.html';
+    };
+  </script>
+</body>
+</html>

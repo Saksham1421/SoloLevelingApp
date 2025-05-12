@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Timer App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+        }
+        
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #121212;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header {
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 16px;
+            position: relative;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .back-button {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .timer-container {
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 56px);
+        }
+        
+        .timer-display {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 48px;
+            text-align: center;
+            color: #fff;
+        }
+        
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            height: 50px;
+        }
+        
+        .timer-button {
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        
+        .timer-button:active {
+            transform: scale(0.97);
+        }
+        
+        .start-button {
+            background-color: #eca400;
+            color: #121212;
+            width: 120px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+        
+        .split-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .pause-button {
+            background-color: #FFC107;
+            color: #121212;
+            right: 30%;
+        }
+        
+        .stop-button {
+            background-color: #F44336;
+            color: #fff;
+            left: 30%;
+        }
+        
+        .finish-button {
+            background-color: #eca400;
+            color: #000000;
+            padding: 12px 32px;
+            border-radius: 24px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .finish-button.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .timer-input {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            transition: all 0.3s ease;
+        }
+        
+        .timer-input.hidden {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .time-input {
+            width: 80px;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 18px;
+            text-align: center;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        
+        .time-label {
+            font-size: 14px;
+            margin-top: 8px;
+            color: #aaa;
+            text-align: center;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Button Icons */
+        .icon {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: #1a1a1a;
+            padding: 24px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.visible .modal {
+            transform: scale(1);
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .modal-button {
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .confirm-button {
+            background-color: #eca400;
+            color: #121212;
+        }
+        
+        .cancel-button {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <button class="back-button" id="backButton">←</button>
+            <h1>Timer</h1>
+        </div>
+        
+        <div class="timer-container">
+            <div class="timer-input" id="timerInput">
+                <div class="input-group">
+                    <input type="number" class="time-input" id="hours" min="0" max="23" value="0">
+                    <div class="time-label">Hours</div>
+                </div>
+                <div class="input-group">
+                    <input type="number" class="time-input" id="minutes" min="0" max="59" value="0">
+                    <div class="time-label">Minutes</div>
+                </div>
+                <div class="input-group">
+                    <input type="number" class="time-input" id="seconds" min="0" max="59" value="0">
+                    <div class="time-label">Seconds</div>
+                </div>
+            </div>
+            
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            
+            <div class="timer-controls">
+                <button class="timer-button start-button" id="startButton">Start</button>
+                <button class="timer-button split-button stop-button" id="stopButton">
+                    <span class="icon">■</span>
+                </button>
+                <button class="timer-button split-button pause-button" id="pauseButton">
+                    <span class="icon">❙❙</span>
+                </button>
+            </div>
+            
+            <button class="finish-button" id="finishButton">Finish</button>
+        </div>
+    </div>
+    
+    <!-- Finish Modal -->
+    <div class="modal-overlay" id="finishModalOverlay">
+        <div class="modal">
+            <div class="modal-title">Finishing will Update the Daily Quest and Title progress</div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm-button" id="finishConfirmButton">OK</button>
+                <button class="modal-button cancel-button" id="finishCancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Back Modal -->
+    <div class="modal-overlay" id="backModalOverlay">
+        <div class="modal">
+            <div class="modal-title">Going back now will not save the progress</div>
+            <div class="modal-buttons">
+                <button class="modal-button confirm-button" id="backConfirmButton">Continue</button>
+                <button class="modal-button cancel-button" id="backCancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const timerDisplay = document.getElementById('timerDisplay');
+            const startButton   = document.getElementById('startButton');
+            const pauseButton   = document.getElementById('pauseButton');
+            const stopButton    = document.getElementById('stopButton');
+            const backButton    = document.getElementById('backButton');
+            const finishButton  = document.getElementById('finishButton');
+            const timerInput    = document.getElementById('timerInput');
+            const hoursInput    = document.getElementById('hours');
+            const minutesInput  = document.getElementById('minutes');
+            const secondsInput  = document.getElementById('seconds');
+            
+            // Modal elements
+            const finishModalOverlay = document.getElementById('finishModalOverlay');
+            const finishConfirmButton = document.getElementById('finishConfirmButton');
+            const finishCancelButton  = document.getElementById('finishCancelButton');
+            
+            const backModalOverlay    = document.getElementById('backModalOverlay');
+            const backConfirmButton   = document.getElementById('backConfirmButton');
+            const backCancelButton    = document.getElementById('backCancelButton');
+            
+            // Timer variables
+            let timerInterval;
+            let isRunning = false;
+            let isPaused  = false;
+            let totalSeconds     = 0;
+            let remainingSeconds = 0;
+            
+            // Format time as HH:MM:SS
+            function formatTime(seconds) {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+                return [
+                    h.toString().padStart(2, '0'),
+                    m.toString().padStart(2, '0'),
+                    s.toString().padStart(2, '0')
+                ].join(':');
+            }
+            
+            // Update display
+            function updateDisplay() {
+                timerDisplay.textContent = formatTime(remainingSeconds);
+            }
+            
+            // Show split & finish buttons
+            function showSplitButtons() {
+                startButton.style.transform = "translateX(-50%) scale(0)";
+                startButton.style.opacity   = "0";
+                setTimeout(() => {
+                    startButton.style.display = "none";
+                    pauseButton.style.transform = "scale(1)";
+                    pauseButton.style.opacity   = "1";
+                    stopButton.style.transform  = "scale(1)";
+                    stopButton.style.opacity    = "1";
+                    finishButton.classList.add('visible');
+                }, 300);
+            }
+            
+            // Hide split & finish
+            function hideSplitButtons() {
+                pauseButton.style.transform = "scale(0)";
+                pauseButton.style.opacity   = "0";
+                stopButton.style.transform  = "scale(0)";
+                stopButton.style.opacity    = "0";
+                finishButton.classList.remove('visible');
+                setTimeout(() => {
+                    startButton.style.display   = "block";
+                    startButton.style.opacity   = "1";
+                    startButton.style.transform = "translateX(-50%) scale(1)";
+                }, 300);
+            }
+            
+            // Show/hide inputs
+            function showInputFields() {
+                timerInput.classList.remove('hidden');
+            }
+            function hideInputFields() {
+                timerInput.classList.add('hidden');
+            }
+            
+            // Start timer
+            function startTimer() {
+                if (!isRunning) {
+                    if (remainingSeconds <= 0 || isPaused === false) {
+                        const h = parseInt(hoursInput.value)   || 0;
+                        const m = parseInt(minutesInput.value) || 0;
+                        const s = parseInt(secondsInput.value) || 0;
+                        totalSeconds     = h*3600 + m*60 + s;
+                        remainingSeconds = totalSeconds;
+                        if (remainingSeconds <= 0) {
+                            alert("Please set a time greater than zero.");
+                            return;
+                        }
+                    }
+                    isRunning = true;
+                    isPaused  = false;
+                    showSplitButtons();
+                    hideInputFields();
+                    timerInterval = setInterval(() => {
+                        remainingSeconds--;
+                        updateDisplay();
+                        if (remainingSeconds <= 0) {
+                            clearInterval(timerInterval);
+                            isRunning = false;
+                            hideSplitButtons();
+                            showInputFields();
+                            alert("Timer complete!");
+                            resetTimer();
+                        }
+                    }, 1000);
+                }
+            }
+            
+            // Pause/resume timer
+            function pauseTimer() {
+                if (isRunning) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    isPaused  = true;
+                    pauseButton.innerHTML = '<span class="icon">▶</span>';
+                }
+                else if (isPaused) {
+                    pauseButton.innerHTML = '<span class="icon">❙❙</span>';
+                    startTimer();
+                }
+            }
+            
+            // Reset timer
+            function resetTimer() {
+                clearInterval(timerInterval);
+                isRunning = false;
+                isPaused  = false;
+                remainingSeconds = 0;
+                totalSeconds     = 0;
+                hoursInput.value   = 0;
+                minutesInput.value = 0;
+                secondsInput.value = 0;
+                showInputFields();
+                hideSplitButtons();
+                pauseButton.innerHTML = '<span class="icon">❙❙</span>';
+                updateDisplay();
+            }
+            
+            // Handle finish
+            function handleFinish() {
+                if (isRunning) pauseTimer();
+                finishModalOverlay.classList.add('visible');
+            }
+            function confirmFinish() {
+                console.log("Progress updated and submitted");
+                finishModalOverlay.classList.remove('visible');
+                resetTimer();
+            }
+            function cancelFinish() {
+                finishModalOverlay.classList.remove('visible');
+            }
+            
+            // Handle back
+            function handleBack() {
+                if (isRunning || isPaused) {
+                    backModalOverlay.classList.add('visible');
+                } else {
+                    window.history.back();
+                }
+            }
+            function confirmBack() {
+                backModalOverlay.classList.remove('visible');
+                resetTimer();
+                window.history.back();
+            }
+            function cancelBack() {
+                backModalOverlay.classList.remove('visible');
+            }
+            
+            // Initialize
+            updateDisplay();
+            
+            // Event listeners
+            startButton.addEventListener('click', startTimer);
+            pauseButton.addEventListener('click', pauseTimer);
+            stopButton.addEventListener('click', resetTimer);
+            finishButton.addEventListener('click', handleFinish);
+            backButton.addEventListener('click', handleBack);
+            
+            finishConfirmButton.addEventListener('click', confirmFinish);
+            finishCancelButton.addEventListener('click', cancelFinish);
+            
+            backConfirmButton.addEventListener('click', confirmBack);
+            backCancelButton.addEventListener('click', cancelBack);
+            
+            // Prevent negative
+            [hoursInput, minutesInput, secondsInput].forEach(inp => {
+                inp.addEventListener('input', function() {
+                    if (this.value < 0) this.value = 0;
+                });
+            });
+            
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solo Leveling – Current Status</title>
+  <style>
+    /* --- Global --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+    }
+    /* --- Container --- */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    /* --- Top Bar --- */
+    .top-bar {
+      position: relative;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .top-bar h1 {
+      font-size: 28px;
+      color: #fff;
+    }
+    .back-btn {
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    /* --- Level Selector --- */
+    .level-selector {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    .level-selector button {
+      margin-left: 8px;
+      background: #eca400;
+      border: none;
+      color: #121212;
+      padding: 4px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    /* --- Quest Tables --- */
+    .quest-section { margin-bottom: 20px; }
+    .quest-section h2 {
+      font-size: 20px;
+      color: #ffc107;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 4px;
+    }
+    .quest-table { width: 100%; border-collapse: collapse; }
+    .quest-table th, .quest-table td { padding: 8px; text-align: left; }
+    .quest-table th { color: #c0c0c0; font-size: 14px; }
+    .quest-table tr:nth-child(even) { background: #222; }
+    /* --- Penalty Card --- */
+    .penalty-card {
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .penalty-card h2 { font-size: 20px; color: #ffc107; margin-bottom: 8px; }
+    .penalty-card p { font-size: 16px; margin-bottom: 8px; }
+    .penalty-dates { list-style: none; font-size: 14px; color: #aaa; }
+    .penalty-dates li { margin-left: 10px; }
+    /* --- Front A.S Card --- */
+    .as-card {
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .as-card p { font-size: 16px; margin-bottom: 10px; }
+    .as-card .form-group { display: flex; align-items: center; gap: 8px; }
+    .as-card label { font-weight: bold; color: #ffc107; }
+    .as-card input { width: 60px; padding: 6px; border-radius: 5px; border: 1px solid #555; background: #222; color: #e0e0e0; text-align: center; }
+    .as-card button { background: #66ff66; border: none; color: #121212; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    /* --- Leave Card --- */
+    .leave-card {
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+    }
+    .leave-card p { color: #ffc107; font-weight: bold; }
+    /* --- Modal Overlay --- */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal { background: #1e1e1e; border: 1px solid #555; padding: 20px; border-radius: 10px; width: 80%; max-width: 300px; text-align: center; color: #e0e0e0; }
+    .modal input { width: 60px; padding: 6px; border-radius: 5px; border: 1px solid #555; background: #222; color: #e0e0e0; text-align: center; margin-bottom: 12px; }
+    .modal button { margin: 4px; padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; }
+    .modal .confirm { background: #66ff66; color: #121212; }
+    .modal .cancel { background: #ff5722; color: #fff; }
+    /* --- Notification --- */
+    .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e1e1e; border: 1px solid #555; padding: 10px 20px; border-radius: 5px; box-shadow: 0 0 15px rgba(0,0,0,0.8); color: #e0e0e0; z-index: 1100; text-align: center; }
+    .notification h4 { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Current Status</h1>
+    </div>
+
+    <!-- Level Selector -->
+    <div class="level-selector">
+      Level: <span id="displayLevel">1</span>
+      <button id="changeLevelBtn">Change</button>
+    </div>
+
+    <!-- Daily Quests -->
+    <div class="quest-section">
+      <h2>Daily Quests</h2>
+      <table class="quest-table">
+        <thead><tr><th>Quest</th><th>Reward</th><th>XP</th></tr></thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Side Quests -->
+    <div class="quest-section">
+      <h2>Side Quests</h2>
+      <table class="quest-table">
+        <thead><tr><th>Quest</th><th>Reward</th><th>XP</th></tr></thead>
+        <tbody id="sideBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Penalty Tracker -->
+    <div class="penalty-card">
+      <h2>Penalty Count</h2>
+      <p id="penaltyCount">0/4</p>
+      <ul class="penalty-dates" id="penaltyDates"></ul>
+    </div>
+
+    <!-- Front A.S Card -->
+    <div class="as-card">
+      <p>Total Front A.S: <span id="frontASDisplay">0</span></p>
+      <div class="form-group">
+        <label for="frontAS">Add A.S:</label>
+        <input type="number" id="frontAS" min="0" value="0"/>
+        <button id="submitAS">Submit</button>
+      </div>
+    </div>
+
+    <!-- Leave Display Card -->
+    <div class="leave-card">
+      <p>Leaves Taken: <span id="leavesTaken">0</span> / 3</p>
+    </div>
+  </div>
+
+  <!-- Level Change Modal -->
+  <div class="modal-overlay" id="levelModal">
+    <div class="modal">
+      <p>Select Level:</p>
+      <input type="number" id="newLevel" min="1" value="1"/>
+      <div>
+        <button class="confirm" id="levelOk">OK</button>
+        <button class="cancel" id="levelCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Utility ---
+    function getLevelInfo(totalXP) {
+      let level=1, xpNeed=100, cum=xpNeed;
+      while(totalXP>=cum){
+        level++;
+        xpNeed = level<=6?Math.ceil(xpNeed*1.5):Math.ceil(xpNeed*1.2);
+        cum += xpNeed;
+      }
+      let cur = totalXP - (cum - xpNeed);
+      return { level, currentProgress: cur, xpNeeded: xpNeed };
+    }
+    // Reward multiplier including reward boost logic
+    function getRewardMultiplier(level) {
+      const baseMults = Array.from({length: level-1}, (_,i)=>1.2);
+      const boostLevel = parseInt(localStorage.getItem('rewardBoostLevel'));
+      const boostClaimed = localStorage.getItem('rewardBoostClaimed')==='true';
+      if(boostClaimed && boostLevel && level>=(boostLevel+1)) {
+        baseMults[boostLevel-1] *= 1.1;
+      }
+      return baseMults.reduce((acc,m)=>acc*m, 1);
+    }
+    function showNotification(html){
+      const n=document.createElement('div'); n.className='notification'; n.innerHTML=html;
+      document.body.appendChild(n);
+      setTimeout(()=>n.remove(), 4000);
+    }
+
+    // --- Data Load ---
+    let totalXP = parseFloat(localStorage.getItem('totalXP'))||0;
+    let penaltyHistory = JSON.parse(localStorage.getItem('penaltyHistory')||'[]');
+    let resetDate = localStorage.getItem('penaltyResetDate')||'';
+    let frontASCount = parseInt(localStorage.getItem('frontASCount'))||0;
+
+    // Leaves
+    const monthKey = new Date().getFullYear()+'-'+(new Date().getMonth()+1);
+    let leavesThisMonth = parseInt(localStorage.getItem('leaves_'+monthKey)||'0');
+    document.getElementById('leavesTaken').textContent = leavesThisMonth;
+
+    // Level view
+    const actualLevel = getLevelInfo(totalXP).level;
+    let viewLevel = actualLevel;
+
+    // Quests
+    const dailyQuests = [ {name:'Workout', reward:10, xp:10}, {name:'Invitation', reward:1, xp:10, perUnit:true}, {name:'Meditation', reward:10, xp:10} ];
+    const sideQuests = [ {name:'Hobby', reward:5, xp:10}, {name:'Front F.U', reward:2, xp:3}, {name:'Team F.U/Close', reward:1, xp:3}, {name:'Team Talk', reward:1, xp:3}, {name:'Enrollments', reward:3, xp:3}, {name:'Team Meeting', reward:4, xp:5}, {name:'F.P Meeting', reward:3, xp:5}, {name:'Skill Dev.', reward:3, xp:3}, {name:'Learning', reward:3, xp:3}, {name:'Personal Brand', reward:5, xp:10} ];
+
+    // --- Render Functions ---
+    function renderQuests(){
+      const dBody=document.getElementById('dailyBody'); dBody.innerHTML='';
+      dailyQuests.forEach(q=>{
+        const mult = getRewardMultiplier(viewLevel);
+        let r = (q.reward * mult).toFixed(1);
+        let label = q.perUnit?`₹${r} / unit`:`₹${r}`;
+        dBody.insertAdjacentHTML('beforeend',`<tr><td>${q.name}</td><td>${label}</td><td>${q.xp}</td></tr>`);
+      });
+      const sBody=document.getElementById('sideBody'); sBody.innerHTML='';
+      sideQuests.forEach(q=>{
+        const mult = getRewardMultiplier(viewLevel);
+        let r = (q.reward * mult).toFixed(1);
+        sBody.insertAdjacentHTML('beforeend',`<tr><td>${q.name}</td><td>₹${r}</td><td>${q.xp}</td></tr>`);
+      });
+      document.getElementById('displayLevel').textContent = viewLevel;
+    }
+    function renderPenalties() {
+      const today=new Date(); const cutoff=new Date(today); cutoff.setDate(cutoff.getDate()-3);
+      let recent=penaltyHistory.filter(d=>new Date(d)>=cutoff);
+      localStorage.setItem('penaltyHistory', JSON.stringify(recent));
+      const count = recent.length;
+      const isoToday = today.toISOString().split('T')[0];
+      if(count>=4 && resetDate!==isoToday) {
+        const info = getLevelInfo(totalXP);
+        totalXP -= info.currentProgress;
+        localStorage.setItem('totalXP', totalXP);
+        showNotification(`<h4>Too many penalties!</h4>Your XP progress reset for level ${info.level}.`);
+        localStorage.setItem('penaltyResetDate', isoToday);
+      }
+      document.getElementById('penaltyCount').textContent = `${count}/4`;
+      const ul = document.getElementById('penaltyDates'); ul.innerHTML='';
+      recent.forEach(d=>{ const date=new Date(d).toISOString().split('T')[0]; ul.insertAdjacentHTML('beforeend',`<li>${date}</li>`); });
+    }
+
+    // --- Handlers ---
+    document.getElementById('submitAS').onclick = () => {
+      const n = parseInt(document.getElementById('frontAS').value)||0;
+      if(n<=0) return;
+      frontASCount += n;
+      localStorage.setItem('frontASCount', frontASCount);
+      showNotification(`<h4>Well Done!</h4>Your Front A.S is now ${frontASCount}.`);
+      document.getElementById('frontAS').value = 0;
+      document.getElementById('frontASDisplay').textContent = frontASCount;
+    };
+    document.getElementById('frontASDisplay').textContent = frontASCount;
+
+    // Level modal
+    const lvlM = document.getElementById('levelModal');
+    document.getElementById('changeLevelBtn').onclick = () => { document.getElementById('newLevel').value = viewLevel; lvlM.style.display='flex'; };
+    document.getElementById('levelCancel').onclick = () => lvlM.style.display='none';
+    document.getElementById('levelOk').onclick = () => { const v=parseInt(document.getElementById('newLevel').value); if(v>=1) viewLevel=v; lvlM.style.display='none'; renderQuests(); };
+    lvlM.addEventListener('click', e=>{ if(e.target===lvlM) lvlM.style.display='none'; });
+
+    // Init
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderQuests(); renderPenalties();
+    });
+    
+  </script>
+</body>
+</html>

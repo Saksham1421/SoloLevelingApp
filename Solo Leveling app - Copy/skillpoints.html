@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solo Leveling – Skill Points</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', Arial, sans-serif; background: #121212; color: #e0e0e0; }
+    .container {
+      max-width: 600px; margin: 20px auto; padding: 20px;
+      background: #1e1e1e; border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    .top-bar {
+      position: relative; text-align: center; margin-bottom: 20px;
+    }
+    .top-bar h1 {
+      font-size: 28px; color: #fff;
+    }
+    .back-btn {
+      position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #fff; font-size: 24px;
+      cursor: pointer;
+    }
+    .streak-card, .skill-card, .skill-log-card {
+      background: #222; border: 1px solid #555; border-radius: 10px;
+      padding: 15px; margin-bottom: 20px;
+    }
+    .streak-title, .skill-title, .skill-log-title {
+      font-size: 20px; color: #ffc107; margin-bottom: 10px;
+      border-bottom: 1px solid #555; padding-bottom: 4px;
+    }
+    .streak-info, .skill-points {
+      font-size: 16px; margin-bottom: 10px;
+    }
+    .use-skill-btn {
+      background: #66ff66; color: #121212;
+      border: none; padding: 10px 20px; border-radius: 10px;
+      font-weight: bold; cursor: pointer; transition: background 0.2s;
+      margin-top: 10px;
+    }
+    .use-skill-btn:hover { background: #55dd55; }
+
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+      z-index: 1000; display: none;
+    }
+    .modal-content {
+      background: #1e1e1e; padding: 20px; border-radius: 10px;
+      width: 90%; max-width: 400px; text-align: center; position: relative;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+    .modal-content h2 {
+      margin-bottom: 20px; color: #ffc107;
+    }
+    .skill-option {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 15px;
+      background: #2c2c2c; padding: 10px; border-radius: 8px;
+    }
+    .skill-option button {
+      background: #66ff66; border: none; padding: 5px 10px;
+      border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+    .skill-option button:hover { background: #55dd55; }
+    .close-modal {
+      position: absolute; top: 10px; right: 15px;
+      background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;
+    }
+    .notification {
+      position: fixed; top: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e1e; border: 1px solid #555;
+      padding: 10px 20px; border-radius: 5px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+      color: #e0e0e0; z-index: 1000;
+      text-align: center;
+    }
+    .notification h4 { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="top-bar">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Skill Points</h1>
+    </div>
+
+    <div class="streak-card">
+      <div class="streak-title">Streak & Skill Points</div>
+      <div class="streak-info">Current Streak: <span id="streakCount">0</span> days</div>
+      <div class="skill-points">Skill Points Available: <span id="skillPoints">0</span></div>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-title">Use Skill Point</div>
+      <button class="use-skill-btn" id="useSkillBtn">Claim Reward</button>
+    </div>
+
+    <div class="skill-log-card">
+      <div class="skill-log-title">Skill Progression Log</div>
+      <ul id="skillLogList"></ul>
+    </div>
+
+    <!-- Skill Choice Modal -->
+    <div class="modal" id="skillModal">
+      <div class="modal-content">
+        <button class="close-modal" onclick="closeModal()">×</button>
+        <h2>Choose a Skill</h2>
+        <div class="skill-option">
+          <span><strong>Reward Boost</strong> (Cost: 1 SP)</span>
+          <button onclick="claimSkill('Reward Boost', 1)">Claim</button>
+        </div>
+        <div class="skill-option">
+          <span><strong>XP Boost</strong> (Cost: 2 SP, Unlocks at Level 9)</span>
+          <button onclick="claimSkill('XP Boost', 2)">Claim</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let streak = parseInt(localStorage.getItem('streak') || '0');
+    let skillPoints = parseInt(localStorage.getItem('skillPoints') || '0');
+    let playerLevel = parseInt(localStorage.getItem('playerLevel') || '1'); // Simulated player level
+    let unlockedSkills = JSON.parse(localStorage.getItem('unlockedSkills') || '[]');
+
+    const streakCount = document.getElementById('streakCount');
+    const skillPointsSpan = document.getElementById('skillPoints');
+    const skillModal = document.getElementById('skillModal');
+    const skillLogList = document.getElementById('skillLogList');
+
+    // Render function
+    function render() {
+      streakCount.textContent = streak;
+      skillPointsSpan.textContent = skillPoints;
+      renderSkillLog();
+    }
+
+    // Skill log render
+    function renderSkillLog() {
+      skillLogList.innerHTML = '';
+      unlockedSkills.forEach(skill => {
+        let li = document.createElement('li');
+        li.innerHTML = `➔ <strong>${skill.name}</strong> — Date: ${skill.date}`;
+        skillLogList.appendChild(li);
+      });
+    }
+
+    // Button events
+    document.getElementById('useSkillBtn').onclick = () => {
+      if (skillPoints > 0) {
+        skillModal.style.display = 'flex';
+      } else {
+        alert('You do not have enough Skill Points.');
+      }
+    };
+
+    function closeModal() {
+      skillModal.style.display = 'none';
+    }
+
+    // Claim skill
+    function claimSkill(skillName, cost) {
+      if (skillName === 'XP Boost' && playerLevel < 9) {
+        alert('Your level is too low for XP Boost. Reach level 9 to unlock.');
+        return;
+      }
+      if (skillPoints >= cost) {
+        skillPoints -= cost;
+        localStorage.setItem('skillPoints', skillPoints);
+        let today = new Date().toISOString().split('T')[0];
+        unlockedSkills.push({ name: skillName, date: today });
+        localStorage.setItem('unlockedSkills', JSON.stringify(unlockedSkills));
+
+        closeModal();
+        render();
+        triggerSkillNotification(skillName);
+      } else {
+        alert('Not enough Skill Points!');
+      }
+    }
+
+    function triggerSkillNotification(skillName) {
+      let n = document.createElement('div');
+      n.className = 'notification';
+      if (skillName === 'Reward Boost') {
+        n.innerHTML = `<h4>Well Done!</h4><p>You upgraded your <strong>Reward Boost</strong> skill. All quest rewards will increment by 1.1x</p>`;
+      } else if (skillName === 'XP Boost') {
+        n.innerHTML = `<h4>Well Done!</h4><p>You upgraded your <strong>XP Boost</strong> skill. All quest XP will increment by 1.3x</p>`;
+      }
+      document.body.appendChild(n);
+      setTimeout(() => n.remove(), 5000);
+    }
+
+    // Simulate skill point gain (for testing purposes)
+    function simulateDailyStreak() {
+      streak++;
+      if (streak % 12 === 0) {
+        skillPoints++;
+        localStorage.setItem('skillPoints', skillPoints);
+      }
+      localStorage.setItem('streak', streak);
+      render();
+    }
+
+    render();
+    // Uncomment to test streak simulation
+    // simulateDailyStreak();
+  </script>
+
+</body>
+</html>

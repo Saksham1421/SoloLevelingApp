@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solo Leveling – Special Quests</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', Arial, sans-serif; background: #121212; color: #e0e0e0; }
+    .container {
+      max-width: 600px; margin: 20px auto; padding: 20px;
+      background: #1e1e1e; border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    .top-bar {
+      position: relative; text-align: center; margin-bottom: 20px;
+    }
+    .top-bar h1 {
+      font-size: 28px; color: #fff;
+    }
+    .back-btn {
+      position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #fff; font-size: 24px;
+      cursor: pointer;
+    }
+    .form-group {
+      margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .form-group label {
+      font-weight: bold; color: #ffc107;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: 10px; border-radius: 5px;
+      border: 1px solid #555; background: #222; color: #e0e0e0;
+      font-size: 14px;
+    }
+    .form-group button {
+      align-self: flex-start;
+      background: #66ff66; color: #121212;
+      border: none; padding: 8px 16px; border-radius: 10px;
+      font-weight: bold; cursor: pointer; transition: background 0.2s;
+    }
+    .form-group button:hover { background: #55dd55; }
+
+    .toggle-history {
+      background: #ffc107; color: #121212;
+      border: none; padding: 8px 16px; border-radius: 10px;
+      cursor: pointer; font-weight: bold;
+      margin-bottom: 20px;
+    }
+    /* --- Active Quests List --- */
+    .section-header {
+      font-size: 20px;
+      color: #ffc107;
+      margin: 20px 0 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 4px;
+    }
+    ul { list-style: none; }
+    .quest-item {
+      background: #222; border: 1px solid #555; border-radius: 8px;
+      padding: 12px 15px; margin-bottom: 12px;
+    }
+    .quest-item .title {
+      font-size: 16px; font-weight: bold; color: #66ff66;
+    }
+    .quest-item .deadline {
+      font-size: 14px; color: #c0c0c0; float: right;
+    }
+    .quest-item .description {
+      font-size: 14px; color: #aaa; margin: 6px 0;
+    }
+    .quest-item .actions {
+      text-align: right;
+    }
+    .quest-item .actions button {
+      background: #66ff66; color: #121212;
+      border: none; padding: 6px 12px; border-radius: 8px;
+      cursor: pointer; font-weight: bold; transition: background 0.2s;
+    }
+    .quest-item .actions button:hover { background: #55dd55; }
+
+    .notification {
+      position: fixed; top: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e1e; border: 1px solid #555;
+      padding: 10px 20px; border-radius: 5px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+      color: #e0e0e0; z-index: 1000;
+      text-align: center;
+    }
+    .notification h4 {
+      margin-bottom: 8px;
+    }
+    .notification .finished { color: #66ff66; }
+    .notification .failed { color: #ff6666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Special Quests</h1>
+    </div>
+
+    <!-- Add New Special Quest -->
+    <div class="form-group">
+      <label for="sqTitle">Title</label>
+      <input type="text" id="sqTitle" placeholder="Enter quest title…"/>
+      <label for="sqDesc">Description</label>
+      <textarea id="sqDesc" rows="3" placeholder="Enter description…"></textarea>
+      <label for="sqDeadline">Deadline</label>
+      <input type="date" id="sqDeadline"/>
+      <button id="addQuestBtn">Add Special Quest</button>
+    </div>
+    <!-- Active Quests -->
+    <div class="section-header">Active Quests</div>
+    <ul class="quest-list" id="activeList"></ul>
+
+    <!-- Toggle Active/History -->
+    <button class="toggle-history" id="toggleHistoryBtn">Show Special Quest History</button>
+
+    <!-- History Quests List (hidden by default) -->
+    <ul id="historyList" style="display:none;"></ul>
+  </div>
+
+  <script>
+    // Data
+    let activeQuests = JSON.parse(localStorage.getItem('activeQuests') || '[]');
+    let historyQuests = JSON.parse(localStorage.getItem('historyQuests') || '[]');
+
+    // Elements
+    const activeList = document.getElementById('activeList');
+    const historyList = document.getElementById('historyList');
+    const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+
+    // Render Active Quests
+    function renderActive() {
+      activeList.innerHTML = '';
+      activeQuests.forEach((q, i) => {
+        let li = document.createElement('li');
+        li.className = 'quest-item';
+        li.innerHTML = `
+          <span class="title">${q.title}</span>
+          <span class="deadline">${q.deadline}</span>
+          <div class="description">${q.desc}</div>
+          <div class="actions">
+            <button onclick="completeQuest(${i})">Complete</button>
+          </div>`;
+        activeList.appendChild(li);
+      });
+    }
+
+    // Render History
+    function renderHistory() {
+      historyList.innerHTML = '';
+      historyQuests.forEach(q => {
+        let li = document.createElement('li');
+        li.className = 'quest-item';
+        li.innerHTML = `
+          <span class="title">${q.title}</span>
+          <span class="deadline">${q.deadline}</span>
+          <div class="description">${q.desc}</div>
+          <div class="description"><strong>Outcome:</strong>
+            <span style="color:${q.outcome==='finished'?'#66ff66':'#ff6666'}">
+              ${q.outcome.toUpperCase()}
+            </span>
+          </div>
+          <div class="description"><strong>Reward:</strong> ${q.reward || 0} | <strong>XP:</strong> ${q.xp || 0}</div>`;
+        historyList.appendChild(li);
+      });
+    }
+
+    // Add Quest
+    document.getElementById('addQuestBtn').onclick = () => {
+      let title = document.getElementById('sqTitle').value.trim();
+      let desc  = document.getElementById('sqDesc').value.trim();
+      let ddl   = document.getElementById('sqDeadline').value;
+      if (!title||!ddl) { alert('Title & Deadline are required'); return; }
+      activeQuests.push({ title, desc, deadline: ddl });
+      localStorage.setItem('activeQuests', JSON.stringify(activeQuests));
+      renderActive();
+      // Clear input fields
+      document.getElementById('sqTitle').value = '';
+      document.getElementById('sqDesc').value = '';
+      document.getElementById('sqDeadline').value = '';
+    };
+
+    // Complete Quest
+    function completeQuest(idx) {
+      let q = activeQuests.splice(idx,1)[0];
+      q.outcome = 'finished';
+      // Placeholder reward & xp for testing
+      q.reward = 0;
+      q.xp = 0;
+      historyQuests.unshift(q);
+      localStorage.setItem('activeQuests', JSON.stringify(activeQuests));
+      localStorage.setItem('historyQuests', JSON.stringify(historyQuests));
+      renderActive();
+      showNotification(
+        `<h4 class="finished">Congratulations!</h4>
+         <p><strong>Special Quest-<span class="finished">FINISHED</span>!</strong><br/>
+         The player will receive bonus Reward and XP updated!</p>`
+      );
+    }
+
+    // Automatic deadline check at midnight
+    function scheduleMidnightCheck() {
+      let now = new Date();
+      let msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1) - now;
+      setTimeout(() => {
+        checkDeadlines();
+        scheduleMidnightCheck();
+      }, msToMidnight + 1000); // +1s to be safe
+    }
+    function checkDeadlines() {
+      let today = new Date().toISOString().split('T')[0];
+      activeQuests = activeQuests.filter(q => {
+        if (q.deadline < today) {
+          q.outcome = 'failed';
+          q.reward = 0;
+          q.xp = 0;
+          historyQuests.unshift(q);
+          showNotification(
+            `<h4 class="failed">Special Quest-<span class="failed">FAILED</span></h4>
+             <p>The Player must eat a spice and no food/water for 30mins in the next 12 hours.</p>`
+          );
+          return false;
+        }
+        return true;
+      });
+      localStorage.setItem('activeQuests', JSON.stringify(activeQuests));
+      localStorage.setItem('historyQuests', JSON.stringify(historyQuests));
+      renderActive();
+    }
+
+    // Toggle History View
+    toggleHistoryBtn.onclick = () => {
+      let showingHistory = historyList.style.display === 'block';
+      historyList.style.display = showingHistory ? 'none' : 'block';
+      activeList.style.display  = showingHistory ? 'block' : 'none';
+      toggleHistoryBtn.textContent = showingHistory
+        ? 'Show Special Quest History'
+        : 'Show Active Special Quests';
+      if (!showingHistory) renderHistory();
+    };
+
+    // Notification helper
+    function showNotification(html) {
+      let n = document.createElement('div');
+      n.className = 'notification';
+      n.innerHTML = html;
+      document.body.appendChild(n);
+      setTimeout(()=>n.remove(), 5000);
+    }
+
+    // Initial render & schedule check
+    renderActive();
+    scheduleMidnightCheck();
+  </script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solo Leveling – Titles</title>
+  <style>
+    /* --- Global Reset & Base --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+    }
+    button { cursor: pointer; }
+
+    /* --- Container --- */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+
+    /* --- Top Bar --- */
+    .top-bar {
+      position: relative;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .top-bar h1 {
+      font-size: 28px;
+      color: #fff;
+    }
+    .back-btn {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      padding: 8px;
+    }
+    .back-btn:active {
+      opacity: .7;
+    }
+
+    /* --- Progress Cards --- */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .progress-card {
+      border: 2px solid #66ff66;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .progress-card h2 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .metric {
+      flex: 1 1 45%;
+    }
+    .metric label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: #ffc107;
+    }
+    .progress {
+      background: #222;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 16px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .inputs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .inputs input[type="number"] {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #121212;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    .card-submit {
+      background: #eca400;
+      color: #121212;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: bold;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+    .card-submit:hover {
+      background: #55dd55;
+    }
+
+    /* --- Titles List --- */
+    .titles-section h3 {
+      font-size: 18px;
+      margin: 20px 0 10px;
+      color: #ffc107;
+      border-bottom: 1px solid #555;
+      padding-bottom: 4px;
+    }
+    .titles-section ul {
+      list-style: none;
+    }
+    .titles-section li {
+      padding: 8px 0;
+      border-bottom: 1px solid #333;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .titles-section li:last-child {
+      border-bottom: none;
+    }
+    .requirement {
+      font-weight: bold;
+      color: #66ff66;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top bar with back arrow -->
+    <div class="top-bar">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <h1>Titles</h1>
+    </div>
+
+    <!-- Progress Tracking Cards -->
+    <div class="cards">
+      <!-- Workout Card -->
+      <div class="progress-card" id="workout-card">
+        <h2>Workout Progress</h2>
+        <div class="metrics">
+          <div class="metric">
+            <label for="workout-hours-input">Hours</label>
+            <div class="progress" id="workout-hours-progress">0 hr 0 min / 10 hr</div>
+            <div class="inputs">
+              <input type="number" id="workout-hours-input" min="0" placeholder="Hrs">
+              <input type="number" id="workout-minutes-input" min="0" max="59" placeholder="Min">
+            </div>
+          </div>
+          <div class="metric">
+            <label for="workout-km-input">Kilometers</label>
+            <div class="progress" id="workout-km-progress">0 / 30 km</div>
+            <div class="inputs">
+              <input type="number" id="workout-km-input" min="0" placeholder="Km">
+            </div>
+          </div>
+        </div>
+        <button class="card-submit" onclick="updateWorkoutProgress()">Submit</button>
+      </div>
+
+      <!-- Meditation Card -->
+      <div class="progress-card" id="meditation-card">
+        <h2>Meditation Progress</h2>
+        <div class="metrics">
+          <div class="metric">
+            <label for="meditation-hours-input">Hours</label>
+            <div class="progress" id="meditation-hours-progress">0 hr 0 min / 5 hr</div>
+            <div class="inputs">
+              <input type="number" id="meditation-hours-input" min="0" placeholder="Hrs">
+              <input type="number" id="meditation-minutes-input" min="0" max="59" placeholder="Min">
+            </div>
+          </div>
+          <div class="metric">
+            <label for="meditation-days-input">Streak Days</label>
+            <div class="progress" id="meditation-days-progress">0 / 50 days</div>
+            <div class="inputs">
+              <input type="number" id="meditation-days-input" min="0" placeholder="Days">
+            </div>
+          </div>
+        </div>
+        <button class="card-submit" onclick="updateMeditationProgress()">Submit</button>
+      </div>
+
+      <!-- Invitation Card -->
+      <div class="progress-card" id="invitation-card">
+        <h2>Invitation Progress</h2>
+        <div class="metrics">
+          <div class="metric">
+            <label for="invitation-calls-input">Calls</label>
+            <div class="progress" id="invitation-calls-progress">0 / 200 calls</div>
+            <div class="inputs">
+              <input type="number" id="invitation-calls-input" min="0" placeholder="Calls">
+            </div>
+          </div>
+          <div class="metric">
+            <label for="invitation-enroll-input">Enrollments</label>
+            <div class="progress" id="invitation-enroll-progress">0 / 5 enroll</div>
+            <div class="inputs">
+              <input type="number" id="invitation-enroll-input" min="0" placeholder="Enrol">
+            </div>
+          </div>
+          <div class="metric">
+            <label for="invitation-days-input">Days</label>
+            <div class="progress" id="invitation-days-progress">0 / 15 days</div>
+            <div class="inputs">
+              <input type="number" id="invitation-days-input" min="0" placeholder="Days">
+            </div>
+          </div>
+          <div class="metric">
+            <label for="invitation-as-input">A.S.</label>
+            <div class="progress" id="invitation-as-progress">0 / 1 A.S.</div>
+            <div class="inputs">
+              <input type="number" id="invitation-as-input" min="0" placeholder="A.S.">
+            </div>
+          </div>
+        </div>
+        <button class="card-submit" onclick="updateInvitationProgress()">Submit</button>
+      </div>
+    </div>
+
+    <!-- Static Titles List -->
+    <div class="titles-section">
+      <h3>Workout Titles</h3>
+      <ul>
+        <li><span>Warm-up Wanderer</span><span class="requirement">10 hr</span></li>
+        <li><span>Beginner Beast</span><span class="requirement">12 hr</span></li>
+        <li><span>Sweat Seeker</span><span class="requirement">30 km</span></li>
+        <li><span>Endurance Apprentice</span><span class="requirement">14 hr</span></li>
+        <li><span>Strength Striver</span><span class="requirement">16 hr</span></li>
+        <li><span>Iron Tamer</span><span class="requirement">40 km</span></li>
+        <li><span>Flex Fighter</span><span class="requirement">18 hr</span></li>
+        <li><span>Power Builder</span><span class="requirement">20 hr</span></li>
+        <li><span>Agility Ace</span><span class="requirement">50 km</span></li>
+      </ul>
+
+      <h3>Meditation Titles</h3>
+      <ul>
+        <li><span>Breath Beginner</span><span class="requirement">5 hr</span></li>
+        <li><span>Stillness Starter</span><span class="requirement">6 hr</span></li>
+        <li><span>Inner Observer</span><span class="requirement">7 hr</span></li>
+        <li><span>Zen Apprentice</span><span class="requirement">8 hr</span></li>
+        <li><span>Mindful Explorer</span><span class="requirement">9 hr</span></li>
+        <li><span>Meditation Maven</span><span class="requirement">10 hr</span></li>
+        <li><span>Tranquility Keeper</span><span class="requirement">50 days</span></li>
+        <li><span>Balance Bringer</span><span class="requirement">100 days</span></li>
+      </ul>
+
+      <h3>Invitation Titles</h3>
+      <ul>
+        <li><span>Dreamer in Action</span><span class="requirement">200 calls</span></li>
+        <li><span>Opportunity Observer</span><span class="requirement">5 enroll</span></li>
+        <li><span>Full-time Hustler</span><span class="requirement">15 days</span></li>
+        <li><span>Startup Rookie</span><span class="requirement">7 enroll</span></li>
+        <li><span>Risk Taker</span><span class="requirement">400 calls</span></li>
+        <li><span>Goal Getter</span><span class="requirement">10 enroll</span></li>
+        <li><span>Visionary Creator</span><span class="requirement">20 days</span></li>
+        <li><span>Hustle Hero</span><span class="requirement">12 enroll</span></li>
+        <li><span>Scaling Strategist</span><span class="requirement">600 calls</span></li>
+        <li><span>Growth Hacker</span><span class="requirement">14 enroll</span></li>
+        <li><span>Revenue Pioneer</span><span class="requirement">3 A.S.</span></li>
+        <li><span>Leadership Luminary</span><span class="requirement">4 A.S.</span></li>
+        <li><span>Empire Visionary</span><span class="requirement">5 A.S.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // --- State & Targets ---
+    const workoutState = {
+      minutes: 0,
+      km: 0,
+      targetMinutes: 10 * 60,
+      targetKm: 30
+    };
+    const meditationState = {
+      minutes: 0,
+      days: 0,
+      targetMinutes: 5 * 60,
+      targetDays: 50
+    };
+    const invitationState = {
+      calls: 0,
+      enroll: 0,
+      days: 0,
+      as: 0,
+      targetCalls: 200,
+      targetEnroll: 5,
+      targetDays: 15,
+      targetAS: 1
+    };
+
+    // --- Workout Update ---
+    function updateWorkoutProgress() {
+      const h = parseInt(document.getElementById('workout-hours-input').value) || 0;
+      const m = parseInt(document.getElementById('workout-minutes-input').value) || 0;
+      const km = parseInt(document.getElementById('workout-km-input').value) || 0;
+      // accumulate
+      workoutState.minutes += h * 60 + m;
+      workoutState.km += km;
+      // clamp
+      workoutState.minutes = Math.min(workoutState.minutes, workoutState.targetMinutes);
+      workoutState.km = Math.min(workoutState.km, workoutState.targetKm);
+      // redraw
+      const hrs = Math.floor(workoutState.minutes / 60);
+      const mins = workoutState.minutes % 60;
+      document.getElementById('workout-hours-progress').textContent =
+        `${hrs} hr ${mins} min / ${workoutState.targetMinutes/60} hr`;
+      document.getElementById('workout-km-progress').textContent =
+        `${workoutState.km} / ${workoutState.targetKm} km`;
+      // clear inputs
+      document.getElementById('workout-hours-input').value = '';
+      document.getElementById('workout-minutes-input').value = '';
+      document.getElementById('workout-km-input').value = '';
+    }
+
+    // --- Meditation Update ---
+    function updateMeditationProgress() {
+      const h = parseInt(document.getElementById('meditation-hours-input').value) || 0;
+      const m = parseInt(document.getElementById('meditation-minutes-input').value) || 0;
+      const d = parseInt(document.getElementById('meditation-days-input').value) || 0;
+      meditationState.minutes += h * 60 + m;
+      meditationState.days += d;
+      meditationState.minutes = Math.min(meditationState.minutes, meditationState.targetMinutes);
+      meditationState.days = Math.min(meditationState.days, meditationState.targetDays);
+      const hrs = Math.floor(meditationState.minutes / 60);
+      const mins = meditationState.minutes % 60;
+      document.getElementById('meditation-hours-progress').textContent =
+        `${hrs} hr ${mins} min / ${meditationState.targetMinutes/60} hr`;
+      document.getElementById('meditation-days-progress').textContent =
+        `${meditationState.days} / ${meditationState.targetDays} days`;
+      document.getElementById('meditation-hours-input').value = '';
+      document.getElementById('meditation-minutes-input').value = '';
+      document.getElementById('meditation-days-input').value = '';
+    }
+
+    // --- Invitation Update ---
+    function updateInvitationProgress() {
+      const c = parseInt(document.getElementById('invitation-calls-input').value) || 0;
+      const e = parseInt(document.getElementById('invitation-enroll-input').value) || 0;
+      const d = parseInt(document.getElementById('invitation-days-input').value) || 0;
+      const a = parseInt(document.getElementById('invitation-as-input').value) || 0;
+      invitationState.calls += c;
+      invitationState.enroll += e;
+      invitationState.days += d;
+      invitationState.as += a;
+      invitationState.calls = Math.min(invitationState.calls, invitationState.targetCalls);
+      invitationState.enroll = Math.min(invitationState.enroll, invitationState.targetEnroll);
+      invitationState.days = Math.min(invitationState.days, invitationState.targetDays);
+      invitationState.as = Math.min(invitationState.as, invitationState.targetAS);
+      document.getElementById('invitation-calls-progress').textContent =
+        `${invitationState.calls} / ${invitationState.targetCalls} calls`;
+      document.getElementById('invitation-enroll-progress').textContent =
+        `${invitationState.enroll} / ${invitationState.targetEnroll} enroll`;
+      document.getElementById('invitation-days-progress').textContent =
+        `${invitationState.days} / ${invitationState.targetDays} days`;
+      document.getElementById('invitation-as-progress').textContent =
+        `${invitationState.as} / ${invitationState.targetAS} A.S.`;
+      document.getElementById('invitation-calls-input').value = '';
+      document.getElementById('invitation-enroll-input').value = '';
+      document.getElementById('invitation-days-input').value = '';
+      document.getElementById('invitation-as-input').value = '';
+    }
+  </script>
+</body>
+</html>
